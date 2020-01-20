@@ -221,6 +221,7 @@ public enum ResourceEvent {
     CLUSTER_BOOTSTRAPPER_ERROR_INVALID_NODECOUNT("cluster.bootstrapper.error.invalide.nodecount"),
     CLUSTER_AMBARI_CLUSTER_COULD_NOT_SYNC("cluster.ambari.cluster.could.not.sync"),
     CLUSTER_AMBARI_CLUSTER_SYNCHRONIZED("cluster.ambari.cluster.synchronized"),
+    CLUSTER_MANAGER_UPGRADE("cluster.manager.upgrade"),
     CLUSTER_UPGRADE("cluster.upgrade"),
     CLUSTER_UPGRADE_FINISHED("cluster.upgrade.finished"),
     CLUSTER_UPGRADE_FAILED("cluster.upgrade.failed"),

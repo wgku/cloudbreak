@@ -193,9 +193,9 @@ public class ReactorFlowManager {
         reactor.notify(selector, eventFactory.createEventWithErrHandler(createEventParameters(stackId), new StackEvent(selector, stackId)));
     }
 
-    public void triggerDatalakeClusterUpgrade(Long stackId) {
+    public FlowIdentifier triggerDatalakeClusterUpgrade(Long stackId) {
         String selector = FlowChainTriggers.DATALAKE_CLUSTER_UPGRADE_CHAIN_TRIGGER_EVENT;
-        reactor.notify(selector, eventFactory.createEventWithErrHandler(createEventParameters(stackId), new StackEvent(selector, stackId)));
+        return notify(stackId, selector, new StackEvent(selector, stackId));
     }
 
     public FlowIdentifier triggerClusterCredentialReplace(Long stackId, String userName, String password) {

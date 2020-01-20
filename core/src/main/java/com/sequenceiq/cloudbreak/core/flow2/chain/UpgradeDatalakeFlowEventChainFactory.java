@@ -1,7 +1,7 @@
 package com.sequenceiq.cloudbreak.core.flow2.chain;
 
 
-import static com.sequenceiq.cloudbreak.core.flow2.cluster.upgrade.ClusterUpgradeEvent.CLUSTER_UPGRADE_EVENT;
+import static com.sequenceiq.cloudbreak.core.flow2.cluster.datalake.upgrade.ClusterUpgradeEvent.CLUSTER_MANAGER_UPGRADE_EVENT;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class UpgradeDatalakeFlowEventChainFactory implements FlowEventChainFacto
     @Override
     public Queue<Selectable> createFlowTriggerEventQueue(StackEvent event) {
         Queue<Selectable> flowEventChain = new ConcurrentLinkedQueue<>();
-        flowEventChain.add(new StackEvent(CLUSTER_UPGRADE_EVENT.event(), event.getResourceId()));
+        flowEventChain.add(new StackEvent(CLUSTER_MANAGER_UPGRADE_EVENT.event(), event.getResourceId()));
         flowEventChain.addAll(getRepairChain(event));
         return flowEventChain;
     }

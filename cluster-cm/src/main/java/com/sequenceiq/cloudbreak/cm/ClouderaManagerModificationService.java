@@ -26,10 +26,14 @@ import com.cloudera.api.swagger.ClouderaManagerResourceApi;
 import com.cloudera.api.swagger.ClustersResourceApi;
 import com.cloudera.api.swagger.HostTemplatesResourceApi;
 import com.cloudera.api.swagger.MgmtServiceResourceApi;
+import com.cloudera.api.swagger.ParcelResourceApi;
 import com.cloudera.api.swagger.ServicesResourceApi;
 import com.cloudera.api.swagger.client.ApiClient;
 import com.cloudera.api.swagger.client.ApiException;
+import com.cloudera.api.swagger.model.ApiCdhUpgradeArgs;
 import com.cloudera.api.swagger.model.ApiCommand;
+import com.cloudera.api.swagger.model.ApiConfig;
+import com.cloudera.api.swagger.model.ApiConfigList;
 import com.cloudera.api.swagger.model.ApiConfigStalenessStatus;
 import com.cloudera.api.swagger.model.ApiHost;
 import com.cloudera.api.swagger.model.ApiHostRef;
@@ -119,6 +123,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
     public List<String> upscaleCluster(HostGroup hostGroup, Collection<InstanceMetaData> instanceMetaDatas)
             throws CloudbreakException {
         ClustersResourceApi clustersResourceApi = clouderaManagerApiFactory.getClustersResourceApi(apiClient);
+        ParcelResourceApi parcelResourceApi = clouderaManagerApiFactory.getParcelResourceApi(apiClient);
         try {
             String clusterName = stack.getName();
             List<String> upscaleHostNames = getUpscaleHosts(clustersResourceApi, clusterName, instanceMetaDatas);
@@ -133,8 +138,22 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
                 if (!isPrewarmed(clusterId)) {
                     redistributeParcelsForRecovery();
                 }
-                activateParcel(clustersResourceApi);
-                clouderaManagerRoleRefreshService.refreshClusterRoles(apiClient, stack);
+                if (instanceMetaDatas.stream().anyMatch(InstanceMetaData::getClusterManagerServer)) {
+                    LOGGER.info("Upscaling CM node..");
+                } else {
+                    LOGGER.info("Upscaling not CM node..");
+                    ClouderaManagerResourceApi clouderaManagerResourceApi = clouderaManagerApiFactory.getClouderaManagerResourceApi(apiClient);
+                    ApiConfigList apiConfigList = new ApiConfigList()
+                            .addItemsItem(new ApiConfig().name("remote_parcel_repo_urls").value("http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/1711788/cdh/7.x/parcels/"));
+                    clouderaManagerResourceApi.updateConfig("Updated configurations.", apiConfigList);
+                    ApiCdhUpgradeArgs upgradeArgs = new ApiCdhUpgradeArgs();
+                    upgradeArgs.setCdhParcelVersion("7.0.3-1.cdh7.0.3.p0.1800166");
+                    clustersResourceApi.upgradeCdhCommand(stack.getName(), upgradeArgs);
+                    //parcelResourceApi.deactivateCommand(stack.getName(), "CDH", "7.0.2-1.cdh7.0.2.p2.1711788");
+                    //parcelResourceApi.activateCommand(stack.getName(), "CDH", "7.0.3-1.cdh7.0.3.p0.1800166");
+                    //activateParcel(clustersResourceApi);
+                    //clouderaManagerRoleRefreshService.refreshClusterRoles(apiClient, stack);
+                }
             }
             return instanceMetaDatas.stream().map(InstanceMetaData::getDiscoveryFQDN).collect(Collectors.toList());
         } catch (ApiException e) {

@@ -45,6 +45,7 @@ public class ClusterUpgradeActions {
 
             @Override
             protected void doExecute(ClusterUpgradeContext context, StackEvent payload, Map<Object, Object> variables) {
+                clusterUpgradeService.upgradeClusterManager(context.getStackId());
                 sendEvent(context);
             }
 

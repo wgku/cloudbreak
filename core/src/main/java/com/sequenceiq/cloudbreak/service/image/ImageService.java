@@ -10,6 +10,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -24,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableSet;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.image.ImageSettingsV4Request;
@@ -37,7 +37,6 @@ import com.sequenceiq.cloudbreak.cloud.model.catalog.StackDetails;
 import com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails;
 import com.sequenceiq.cloudbreak.cloud.model.component.StackType;
 import com.sequenceiq.cloudbreak.cmtemplate.utils.BlueprintUtils;
-import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.json.JsonUtil;
 import com.sequenceiq.cloudbreak.common.type.ComponentType;
@@ -89,23 +88,18 @@ public class ImageService {
     @Measure(ImageService.class)
     public void create(Stack stack, String platformString, StatedImage imgFromCatalog)
             throws CloudbreakImageNotFoundException, CloudbreakImageCatalogException {
-        try {
-            String region = stack.getRegion();
 
-            LOGGER.debug("Determined image from catalog: {}", imgFromCatalog);
+        String region = stack.getRegion();
+        LOGGER.debug("Determined image from catalog: {}", imgFromCatalog);
+        String imageName = determineImageName(platformString, region, imgFromCatalog.getImage());
+        LOGGER.debug("Selected VM image for CloudPlatform '{}' and region '{}' is: {} from: {} image catalog",
+                platformString, region, imageName, imgFromCatalog.getImageCatalogUrl());
 
-            String imageName = determineImageName(platformString, region, imgFromCatalog.getImage());
-            LOGGER.debug("Selected VM image for CloudPlatform '{}' and region '{}' is: {} from: {} image catalog",
-                    platformString, region, imageName, imgFromCatalog.getImageCatalogUrl());
-
-            List<Component> components = getComponents(stack, Map.of(), imgFromCatalog.getImage(), imageName,
-                    imgFromCatalog.getImageCatalogUrl(),
-                    imgFromCatalog.getImageCatalogName(),
-                    imgFromCatalog.getImage().getUuid());
-            componentConfigProviderService.store(components);
-        } catch (JsonProcessingException e) {
-            throw new CloudbreakServiceException("Failed to create json", e);
-        }
+        List<Component> components = getComponents(stack, Map.of(), imgFromCatalog.getImage(), imageName,
+                imgFromCatalog.getImageCatalogUrl(),
+                imgFromCatalog.getImageCatalogName(),
+                imgFromCatalog.getImage().getUuid());
+        componentConfigProviderService.store(components);
     }
 
     //CHECKSTYLE:OFF
@@ -222,7 +216,7 @@ public class ImageService {
 
     private List<Component> getComponents(Stack stack, Map<InstanceGroupType, String> userData,
             com.sequenceiq.cloudbreak.cloud.model.catalog.Image imgFromCatalog,
-            String imageName, String imageCatalogUrl, String imageCatalogName, String imageId) throws JsonProcessingException, CloudbreakImageCatalogException {
+            String imageName, String imageCatalogUrl, String imageCatalogName, String imageId) throws CloudbreakImageCatalogException {
         List<Component> components = new ArrayList<>();
         Image image = new Image(imageName, userData, imgFromCatalog.getOs(), imgFromCatalog.getOsType(), imageCatalogUrl, imageCatalogName, imageId,
                 imgFromCatalog.getPackageVersions());
@@ -242,7 +236,7 @@ public class ImageService {
         return components;
     }
 
-    private Component getStackComponent(Stack stack, StackDetails stackDetails, StackType stackType, String osType) throws JsonProcessingException {
+    private Component getStackComponent(Stack stack, StackDetails stackDetails, StackType stackType, String osType) {
         ComponentType componentType = stackType.getComponentType();
         if (CDH_PRODUCT_DETAILS.equals(componentType)) {
             ClouderaManagerProduct product = createProductRepo(stackDetails, osType);
@@ -254,11 +248,11 @@ public class ImageService {
     }
 
     private Component getClusterManagerComponent(Stack stack, com.sequenceiq.cloudbreak.cloud.model.catalog.Image imgFromCatalog, StackType stackType)
-            throws JsonProcessingException, CloudbreakImageCatalogException {
+            throws CloudbreakImageCatalogException {
         if (imgFromCatalog.getRepo() != null) {
             if (StackType.CDH.equals(stackType)) {
                 ClouderaManagerRepo clouderaManagerRepo = conversionService.convert(imgFromCatalog, ClouderaManagerRepo.class);
-                if (clouderaManagerRepo.getBaseUrl() == null) {
+                if (Objects.isNull(clouderaManagerRepo) || clouderaManagerRepo.getBaseUrl() == null) {
                     throw new CloudbreakImageCatalogException(
                             String.format("Cloudera Manager repo was not found in image for os: '%s'.", imgFromCatalog.getOsType()));
                 }

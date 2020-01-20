@@ -29,6 +29,11 @@ public class ClusterUpgradeService {
     @Inject
     private StackUtil stackUtil;
 
+    public void upgradeClusterManager(long stackId) {
+        clusterService.updateClusterStatusByStackId(stackId, Status.UPDATE_IN_PROGRESS);
+        flowMessageService.fireEventAndLog(stackId, Status.UPDATE_IN_PROGRESS.name(), CLUSTER_UPGRADE);
+    }
+
     public void upgradeCluster(long stackId) {
         clusterService.updateClusterStatusByStackId(stackId, Status.UPDATE_IN_PROGRESS);
         flowMessageService.fireEventAndLog(stackId, Status.UPDATE_IN_PROGRESS.name(), CLUSTER_UPGRADE);
