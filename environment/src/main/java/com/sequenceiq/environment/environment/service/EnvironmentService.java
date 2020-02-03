@@ -293,4 +293,5 @@ public class EnvironmentService implements ResourceIdProvider, ResourceBasedCrnP
     public List<Environment> findAllByAccountIdAndParentEnvIdAndArchivedIsFalse(String accountId, Long parentEnvironmentId) {
         return environmentRepository.findAllByAccountIdAndParentEnvIdAndArchivedIsFalse(accountId, parentEnvironmentId);
     }
+
 }

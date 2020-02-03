@@ -1,5 +1,6 @@
 package com.sequenceiq.environment.environment.validation.validators;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.sequenceiq.cloudbreak.common.mappable.CloudPlatform.AWS;
 import static com.sequenceiq.cloudbreak.common.mappable.CloudPlatform.AZURE;
 import static com.sequenceiq.cloudbreak.common.mappable.CloudPlatform.MOCK;
@@ -17,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Strings;
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.validation.SubnetValidator;
 import com.sequenceiq.cloudbreak.validation.ValidationResult;
@@ -51,7 +51,7 @@ public class EnvironmentNetworkProviderValidator {
         String cloudPlatform = environmentDto.getCloudPlatform();
         ValidationResultBuilder resultBuilder = ValidationResult.builder();
         validateNetworkHasTheSamePropertyFilledAsTheDesiredCloudPlatform(network, cloudPlatform, resultBuilder);
-        validateNetwork(network, cloudPlatform, resultBuilder);
+        validateNetwork(network, cloudPlatform, resultBuilder, environmentDto);
         validateSecurityGroup(environmentDto, cloudPlatform, resultBuilder);
         return resultBuilder.build();
     }
@@ -66,9 +66,9 @@ public class EnvironmentNetworkProviderValidator {
                     MOCK, optional(networkDto.getMock()),
                     YARN, optional(networkDto.getYarn())
             );
-
+            String supportedPlatforms = String.join(", ", providerNetworkParamPair.keySet().stream().map(Enum::name).collect(Collectors.toSet()));
             LOGGER.debug("About to validate network properties for cloud platform \"{}\" against the following supported platforms: {}",
-                    cloudPlatform, String.join(", ", providerNetworkParamPair.keySet().stream().map(Enum::name).collect(Collectors.toSet())));
+                    cloudPlatform, supportedPlatforms);
 
             providerNetworkParamPair.keySet().stream()
                     .filter(cloudProviderName -> cloudProviderName.name().equalsIgnoreCase(cloudPlatform))
@@ -88,14 +88,16 @@ public class EnvironmentNetworkProviderValidator {
         return Optional.ofNullable(o);
     }
 
-    private void validateNetwork(NetworkDto networkDto, String cloudPlatform, ValidationResultBuilder resultBuilder) {
-        if (networkDto != null && Strings.isNullOrEmpty(networkDto.getNetworkCidr())) {
-            EnvironmentNetworkValidator environmentNetworkValidator = environmentNetworkValidatorsByCloudPlatform.get(valueOf(cloudPlatform));
-            if (networkDto.getNetworkCidr() != null && isInvalidNetworkMask(networkDto.getNetworkCidr())) {
+    private void validateNetwork(NetworkDto networkDto, String cloudPlatform, ValidationResultBuilder resultBuilder, EnvironmentDto environmentDto) {
+        if (networkDto != null) {
+            if (isNullOrEmpty(networkDto.getNetworkCidr()) && (networkDto.getNetworkCidr() != null && isInvalidNetworkMask(networkDto.getNetworkCidr()))) {
                 resultBuilder.error(String.format("The netmask must be /%s.", EXPECTED_NETWORK_MASK));
+                return;
             }
+            EnvironmentNetworkValidator environmentNetworkValidator = environmentNetworkValidatorsByCloudPlatform.get(valueOf(cloudPlatform));
             if (environmentNetworkValidator != null) {
-                environmentNetworkValidator.validateDuringFlow(networkDto, resultBuilder);
+                LOGGER.debug("Going to validate environment ({}) network in flow", environmentDto.getName());
+                environmentNetworkValidator.validateDuringFlow(environmentDto, networkDto, resultBuilder);
             } else {
                 resultBuilder.error(String.format("Environment specific network is not supported for cloud platform: '%s'!", cloudPlatform));
             }
@@ -119,4 +121,5 @@ public class EnvironmentNetworkProviderValidator {
             }
         }
     }
+
 }
