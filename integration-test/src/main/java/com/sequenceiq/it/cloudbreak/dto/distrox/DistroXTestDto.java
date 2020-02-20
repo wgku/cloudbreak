@@ -199,6 +199,15 @@ public class DistroXTestDto extends DistroXTestDtoBase<DistroXTestDto> implement
         return this;
     }
 
+    public DistroXTestDto withClusterTemplate() {
+        ClusterTemplateTestDto clusterTemplateTestDto = getTestContext().get(ClusterTemplateTestDto.class);
+        DistroXV1Request distroXTemplate = clusterTemplateTestDto.getResponses().iterator().next().getDistroXTemplate();
+        setRequest(distroXTemplate);
+        String name = getResourcePropertyProvider().getName();
+        withName(name);
+        return this;
+    }
+
     @Override
     public String investigate() {
         if (getResponse() == null || getResponse().getId() == null) {

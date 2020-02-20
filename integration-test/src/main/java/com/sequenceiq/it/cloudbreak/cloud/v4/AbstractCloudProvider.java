@@ -158,4 +158,9 @@ public abstract class AbstractCloudProvider implements CloudProvider {
     protected abstract ClusterTestDto withCluster(ClusterTestDto cluster);
 
     protected abstract DistroXClusterTestDto withCluster(DistroXClusterTestDto cluster);
+
+    @Override
+    public String getImageValidationDistroxClusterTemplateName() {
+        return "undefined";
+    }
 }

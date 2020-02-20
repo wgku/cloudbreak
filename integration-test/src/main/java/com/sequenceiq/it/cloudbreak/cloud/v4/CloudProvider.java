@@ -131,4 +131,6 @@ public interface CloudProvider {
 
     void setInstanceTemplateV1Parameters(InstanceTemplateV1Request instanceTemplateV1Request);
 
+    String getImageValidationDistroxClusterTemplateName();
+
 }

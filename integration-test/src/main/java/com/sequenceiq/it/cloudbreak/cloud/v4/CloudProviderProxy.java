@@ -298,4 +298,9 @@ public class CloudProviderProxy implements CloudProvider {
     public void setInstanceTemplateV1Parameters(InstanceTemplateV1Request instanceTemplateV1Request) {
         delegate.setInstanceTemplateV1Parameters(instanceTemplateV1Request);
     }
+
+    @Override
+    public String getImageValidationDistroxClusterTemplateName() {
+        return delegate.getImageValidationDistroxClusterTemplateName();
+    }
 }

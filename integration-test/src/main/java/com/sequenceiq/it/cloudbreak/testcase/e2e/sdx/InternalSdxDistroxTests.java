@@ -4,10 +4,12 @@ import javax.inject.Inject;
 
 import org.testng.annotations.Test;
 
+import com.sequenceiq.it.cloudbreak.client.ClusterTemplateTestClient;
 import com.sequenceiq.it.cloudbreak.client.DistroXTestClient;
 import com.sequenceiq.it.cloudbreak.client.SdxTestClient;
 import com.sequenceiq.it.cloudbreak.context.Description;
 import com.sequenceiq.it.cloudbreak.context.TestContext;
+import com.sequenceiq.it.cloudbreak.dto.clustertemplate.ClusterTemplateTestDto;
 import com.sequenceiq.it.cloudbreak.dto.distrox.DistroXTestDto;
 import com.sequenceiq.it.cloudbreak.dto.distrox.image.DistroXImageTestDto;
 import com.sequenceiq.it.cloudbreak.dto.sdx.SdxInternalTestDto;
@@ -22,6 +24,9 @@ public class InternalSdxDistroxTests extends ImageValidatorE2ETest {
 
     @Inject
     private DistroXTestClient distroXTestClient;
+
+    @Inject
+    private ClusterTemplateTestClient clusterTemplateTestClient;
 
     @Override
     protected void setupTest(TestContext testContext) {
@@ -48,8 +53,13 @@ public class InternalSdxDistroxTests extends ImageValidatorE2ETest {
                 .await(SdxClusterStatusResponse.RUNNING)
                 .when(sdxTestClient.describeInternal())
                 .validate();
+        testContext.given(ClusterTemplateTestDto.class)
+                .withName(testContext.getCloudProvider().getImageValidationDistroxClusterTemplateName())
+                .when(clusterTemplateTestClient.getV4())
+                .validate();
         testContext.given(DistroXTestDto.class)
-                .withTemplate(distroxTemplateName)
+                .withClusterTemplate()
+                .withEnvironmentName(testContext.get(SdxInternalTestDto.class).getResponse().getEnvironmentName())
                 .withImageSettings(testContext
                         .given(DistroXImageTestDto.class)
                         .withImageCatalog(testContext.get(SdxInternalTestDto.class).getResponse().getStackV4Response().getImage().getCatalogName())

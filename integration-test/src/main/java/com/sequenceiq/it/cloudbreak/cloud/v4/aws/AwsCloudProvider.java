@@ -373,4 +373,9 @@ public class AwsCloudProvider extends AbstractCloudProvider {
         awsInstanceTemplateV1Parameters.setEncryption(awsEncryptionV1Parameters);
         instanceTemplateV1Request.setAws(awsInstanceTemplateV1Parameters);
     }
+
+    @Override
+    public String getImageValidationDistroxClusterTemplateName() {
+        return awsProperties.getImageValidationDistroxClusterTemplateName();
+    }
 }

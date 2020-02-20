@@ -21,9 +21,6 @@ public abstract class ImageValidatorE2ETest extends AbstractE2ETest {
     @Value("${integrationtest.imageValidation.sdxTemplateName}")
     protected String sdxTemplateName;
 
-    @Value("${integrationtest.imageValidation.distroxTemplateName}")
-    protected String distroxTemplateName;
-
     @Value("${integrationtest.imageValidation.runtimeVersion}")
     protected String runtimeVersion;
 

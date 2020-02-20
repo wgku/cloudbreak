@@ -25,7 +25,6 @@ import com.sequenceiq.it.cloudbreak.dto.environment.EnvironmentTestDto;
 import com.sequenceiq.it.cloudbreak.dto.imagecatalog.ImageCatalogTestDto;
 import com.sequenceiq.it.util.TagAdderUtil;
 import com.sequenceiq.it.util.TestNameExtractorUtil;
-import com.sequenceiq.sdx.api.model.SdxInternalClusterRequest;
 
 public class DistroXTestDtoBase<T extends DistroXTestDtoBase> extends AbstractCloudbreakTestDto<DistroXV1Request, StackV4Response, T> {
 
@@ -132,14 +131,6 @@ public class DistroXTestDtoBase<T extends DistroXTestDtoBase> extends AbstractCl
     public DistroXTestDtoBase<T> withSdx(SdxV1Request sdxV1Request) {
         getRequest().setSdx(sdxV1Request);
         return this;
-    }
-
-    public DistroXTestDtoBase<T> withInternalSdx(String key) {
-        SdxInternalClusterRequest sdxInternalClusterRequest = getTestContext().get(key);
-
-        SdxV1Request sdxRequest = new SdxV1Request();
-        sdxRequest.setName(sdxInternalClusterRequest.getStackV4Request().getName());
-        return withSdx(sdxRequest);
     }
 
     public DistroXTestDtoBase<T> withInstanceGroupsEntity(Collection<DistroXInstanceGroupTestDto> instanceGroups) {

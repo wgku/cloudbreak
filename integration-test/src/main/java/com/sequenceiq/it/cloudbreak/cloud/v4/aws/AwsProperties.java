@@ -25,6 +25,8 @@ public class AwsProperties {
 
     private String blueprintCdhVersion;
 
+    private String imageValidationDistroxClusterTemplateName;
+
     private final Instance instance = new Instance();
 
     private final Credential credential = new Credential();
@@ -111,6 +113,14 @@ public class AwsProperties {
 
     public Cloudstorage getCloudstorage() {
         return cloudstorage;
+    }
+
+    public String getImageValidationDistroxClusterTemplateName() {
+        return imageValidationDistroxClusterTemplateName;
+    }
+
+    public void setImageValidationDistroxClusterTemplateName(String imageValidationDistroxClusterTemplateName) {
+        this.imageValidationDistroxClusterTemplateName = imageValidationDistroxClusterTemplateName;
     }
 
     public static class Instance {

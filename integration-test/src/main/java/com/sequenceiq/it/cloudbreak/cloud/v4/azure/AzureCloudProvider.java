@@ -323,4 +323,9 @@ public class AzureCloudProvider extends AbstractCloudProvider {
         throw new NotImplementedException(String.format("Not implemented on %s", getCloudPlatform()));
     }
 
+    @Override
+    public String getImageValidationDistroxClusterTemplateName() {
+        return azureProperties.getImageValidationDistroxClusterTemplateName();
+    }
+
 }

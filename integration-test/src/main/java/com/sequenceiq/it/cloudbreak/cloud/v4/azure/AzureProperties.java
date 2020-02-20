@@ -19,6 +19,8 @@ public class AzureProperties {
 
     private String blueprintCdhVersion;
 
+    private String imageValidationDistroxClusterTemplateName;
+
     private final Credential credential = new Credential();
 
     private final Instance instance = new Instance();
@@ -81,6 +83,14 @@ public class AzureProperties {
 
     public void setBlueprintCdhVersion(String blueprintCdhVersion) {
         this.blueprintCdhVersion = blueprintCdhVersion;
+    }
+
+    public String getImageValidationDistroxClusterTemplateName() {
+        return imageValidationDistroxClusterTemplateName;
+    }
+
+    public void setImageValidationDistroxClusterTemplateName(String imageValidationDistroxClusterTemplateName) {
+        this.imageValidationDistroxClusterTemplateName = imageValidationDistroxClusterTemplateName;
     }
 
     public static class Credential {
