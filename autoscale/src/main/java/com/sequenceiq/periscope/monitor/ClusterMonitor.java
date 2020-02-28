@@ -35,11 +35,11 @@ public abstract class ClusterMonitor extends AbstractMonitor<Cluster> {
         return clusterService.save(monitored);
     }
 
-    PeriscopeNodeConfig getPeriscopeNodeConfig() {
+    protected PeriscopeNodeConfig getPeriscopeNodeConfig() {
         return periscopeNodeConfig;
     }
 
-    ClusterService getClusterService() {
+    protected ClusterService getClusterService() {
         return clusterService;
     }
 

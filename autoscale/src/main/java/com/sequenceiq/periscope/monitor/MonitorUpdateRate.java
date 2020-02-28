@@ -23,6 +23,12 @@ public final class MonitorUpdateRate {
     public static final String PROMETHEUS_UPDATE_RATE_CRON = "0/10 * * * * ?";
 
     /**
+     * Every minute.
+     */
+    public static final String YARN_SCALING_MONITOR_RATE_CRON = "0/10 * * * * ?";
+
+
+    /**
      * Time update rate in ms, aligned to the cron expression.
      */
     public static final long CRON_UPDATE_RATE_IN_MILLIS = 10_000L;

@@ -1,0 +1,60 @@
+{
+  "vmtypes": [
+    {
+      "name": "m4.large",
+      "memorysize": 8
+    },
+    {
+      "name": "m4.xlarge",
+      "memorysize": 16
+    },
+    {
+      "name": "m4.2xlarge",
+      "memorysize": 32
+    },
+    {
+      "name": "m4.4xlarge",
+      "memorysize": 64
+    },
+    {
+      "name": "m4.10xlarge",
+      "memorysize": 160
+    },
+    {
+      "name": "m4.16xlarge",
+      "memorysize": 256
+    },
+    {
+      "name": "m5.large",
+      "memorysize": 8
+    },
+    {
+      "name": "m5.xlarge",
+      "memorysize": 16
+    },
+    {
+      "name": "m5.2xlarge",
+      "memorysize": 32
+    },
+    {
+      "name": "m5.4xlarge",
+      "memorysize": 64
+    },
+    {
+      "name": "m5.8xlarge",
+      "memorysize": 128
+    },
+    {
+      "name": "m5.12xlarge",
+      "memorysize": 192
+    },
+    {
+      "name": "m5.16xlarge",
+      "memorysize": 256
+    },
+    {
+      "name": "m5.24xlarge",
+      "memorysize": 384
+    }
+  ]
+}
