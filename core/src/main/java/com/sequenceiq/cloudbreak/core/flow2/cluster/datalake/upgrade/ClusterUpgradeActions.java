@@ -1,5 +1,7 @@
 package com.sequenceiq.cloudbreak.core.flow2.cluster.datalake.upgrade;
 
+import static com.sequenceiq.cloudbreak.core.flow2.cluster.datalake.upgrade.ClusterUpgradeEvent.CLUSTER_UPGRADE_FAIL_HANDLED_EVENT;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -131,7 +133,7 @@ public class ClusterUpgradeActions {
             @Override
             protected void doExecute(ClusterUpgradeContext context, ClusterUpgradeFailedEvent payload, Map<Object, Object> variables) throws Exception {
                 clusterUpgradeService.handleUpgradeClusterFailure(context.getStackId(), payload.getException().getMessage());
-                sendEvent(context);
+                sendEvent(context, CLUSTER_UPGRADE_FAIL_HANDLED_EVENT.event(), payload);
             }
 
             @Override
