@@ -27,9 +27,6 @@ import com.sequenceiq.flow.core.chain.FlowEventChainFactory;
 public class UpgradeDatalakeFlowEventChainFactory implements FlowEventChainFactory<StackEvent> {
 
     @Inject
-    ClusterRepairFlowEventChainFactory clusterRepairFlowEventChainFactory;
-
-    @Inject
     private StackService stackService;
 
     @Override
@@ -40,21 +37,24 @@ public class UpgradeDatalakeFlowEventChainFactory implements FlowEventChainFacto
     @Override
     public Queue<Selectable> createFlowTriggerEventQueue(StackEvent event) {
         Queue<Selectable> flowEventChain = new ConcurrentLinkedQueue<>();
+
         flowEventChain.add(new StackEvent(CLUSTER_MANAGER_UPGRADE_EVENT.event(), event.getResourceId()));
-        flowEventChain.addAll(getRepairChain(event));
+
+        Stack stack = stackService.getByIdWithListsInTransaction(event.getResourceId());
+        Map<String, List<String>> nodes = getAllNodes(stack);
+        flowEventChain.add(new ClusterRepairTriggerEvent(stack, nodes, Boolean.FALSE));
+
         return flowEventChain;
     }
 
-    private Queue<Selectable> getRepairChain(StackEvent event) {
-        Stack stack = stackService.getByIdWithListsInTransaction(event.getResourceId());
-        Map<String, List<String>> nodes = stack.getInstanceGroups().stream()
-                .map(instanceGroup -> Map.entry(instanceGroup.getGroupName(), new ArrayList<>(instanceGroup
-                        .getNotTerminatedInstanceMetaDataSet()
-                        .stream()
-                        .map(InstanceMetaData::getDiscoveryFQDN)
-                        .collect(Collectors.toList()))))
-                .filter(entry -> !entry.getValue().isEmpty())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-        return clusterRepairFlowEventChainFactory.createFlowTriggerEventQueue(new ClusterRepairTriggerEvent(stack, nodes, Boolean.FALSE));
+    private Map<String, List<String>> getAllNodes(Stack stack) {
+        return stack.getInstanceGroups().stream()
+                    .map(instanceGroup -> Map.entry(instanceGroup.getGroupName(), new ArrayList<>(instanceGroup
+                            .getNotTerminatedInstanceMetaDataSet()
+                            .stream()
+                            .map(InstanceMetaData::getDiscoveryFQDN)
+                            .collect(Collectors.toList()))))
+                    .filter(entry -> !entry.getValue().isEmpty())
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
