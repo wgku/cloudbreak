@@ -46,10 +46,9 @@ public class UpgradeDatalakeFlowEventChainFactory implements FlowEventChainFacto
     }
 
     private Queue<Selectable> getRepairChain(StackEvent event) {
-        Stack stack = stackService.getById(event.getResourceId());
-        Map<String, List<String>> nodes = stack.getCluster().getHostGroups().stream()
-                .map(hostGroup -> Map.entry(hostGroup.getName(), new ArrayList<>(hostGroup
-                        .getInstanceGroup()
+        Stack stack = stackService.getByIdWithListsInTransaction(event.getResourceId());
+        Map<String, List<String>> nodes = stack.getInstanceGroups().stream()
+                .map(instanceGroup -> Map.entry(instanceGroup.getGroupName(), new ArrayList<>(instanceGroup
                         .getNotTerminatedInstanceMetaDataSet()
                         .stream()
                         .map(InstanceMetaData::getDiscoveryFQDN)
