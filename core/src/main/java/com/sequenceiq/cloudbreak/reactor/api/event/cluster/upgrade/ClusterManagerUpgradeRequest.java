@@ -1,7 +1,5 @@
 package com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade;
 
-import static com.sequenceiq.cloudbreak.core.flow2.cluster.datalake.upgrade.ClusterUpgradeEvent.CLUSTER_MANAGER_UPGRADE_EVENT;
-
 import com.sequenceiq.cloudbreak.reactor.api.event.StackEvent;
 
 public class ClusterManagerUpgradeRequest extends StackEvent {
@@ -16,6 +14,6 @@ public class ClusterManagerUpgradeRequest extends StackEvent {
 
     @Override
     public String selector() {
-        return CLUSTER_MANAGER_UPGRADE_EVENT.event();
+        return "ClusterManagerUpgradeRequest";
     }
 }
