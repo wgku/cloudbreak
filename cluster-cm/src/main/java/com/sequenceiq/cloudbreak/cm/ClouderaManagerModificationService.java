@@ -26,7 +26,6 @@ import com.cloudera.api.swagger.ClouderaManagerResourceApi;
 import com.cloudera.api.swagger.ClustersResourceApi;
 import com.cloudera.api.swagger.HostTemplatesResourceApi;
 import com.cloudera.api.swagger.MgmtServiceResourceApi;
-import com.cloudera.api.swagger.ParcelResourceApi;
 import com.cloudera.api.swagger.ServicesResourceApi;
 import com.cloudera.api.swagger.client.ApiClient;
 import com.cloudera.api.swagger.client.ApiException;
@@ -123,7 +122,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
     public List<String> upscaleCluster(HostGroup hostGroup, Collection<InstanceMetaData> instanceMetaDatas)
             throws CloudbreakException {
         ClustersResourceApi clustersResourceApi = clouderaManagerApiFactory.getClustersResourceApi(apiClient);
-        ParcelResourceApi parcelResourceApi = clouderaManagerApiFactory.getParcelResourceApi(apiClient);
+//        ParcelResourceApi parcelResourceApi = clouderaManagerApiFactory.getParcelResourceApi(apiClient);
         try {
             String clusterName = stack.getName();
             List<String> upscaleHostNames = getUpscaleHosts(clustersResourceApi, clusterName, instanceMetaDatas);
@@ -144,7 +143,9 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
                     LOGGER.info("Upscaling not CM node..");
                     ClouderaManagerResourceApi clouderaManagerResourceApi = clouderaManagerApiFactory.getClouderaManagerResourceApi(apiClient);
                     ApiConfigList apiConfigList = new ApiConfigList()
-                            .addItemsItem(new ApiConfig().name("remote_parcel_repo_urls").value("http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/1711788/cdh/7.x/parcels/"));
+                            .addItemsItem(new ApiConfig()
+                                    .name("remote_parcel_repo_urls")
+                                    .value("http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/1711788/cdh/7.x/parcels/"));
                     clouderaManagerResourceApi.updateConfig("Updated configurations.", apiConfigList);
                     ApiCdhUpgradeArgs upgradeArgs = new ApiCdhUpgradeArgs();
                     upgradeArgs.setCdhParcelVersion("7.0.3-1.cdh7.0.3.p0.1800166");

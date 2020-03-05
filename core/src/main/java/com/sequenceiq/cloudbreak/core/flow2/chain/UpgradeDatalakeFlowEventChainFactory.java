@@ -42,7 +42,7 @@ public class UpgradeDatalakeFlowEventChainFactory implements FlowEventChainFacto
 
         Stack stack = stackService.getByIdWithListsInTransaction(event.getResourceId());
         Map<String, List<String>> nodes = getAllNodes(stack);
-        flowEventChain.add(new ClusterRepairTriggerEvent(stack, nodes, Boolean.FALSE));
+        flowEventChain.add(new ClusterRepairTriggerEvent(stack.getId(), nodes, Boolean.FALSE));
 
         return flowEventChain;
     }
