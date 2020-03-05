@@ -8,16 +8,15 @@ import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.common.event.Selectable;
 import com.sequenceiq.cloudbreak.core.cluster.ClusterManagerUpgradeService;
+import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterManagerUpgradeRequest;
 import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterManagerUpgradeSuccess;
 import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterUpgradeFailedEvent;
-import com.sequenceiq.cloudbreak.reactor.api.event.resource.ClusterUpgradeRequest;
-import com.sequenceiq.flow.reactor.api.handler.EventHandler;
+import com.sequenceiq.flow.reactor.api.handler.ExceptionCatcherEventHandler;
 
-import reactor.bus.Event;
 import reactor.bus.EventBus;
 
 @Component
-public class ClusterManagerUpgradeHandler implements EventHandler<ClusterUpgradeRequest> {
+public class ClusterManagerUpgradeHandler extends ExceptionCatcherEventHandler<ClusterManagerUpgradeRequest> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterManagerUpgradeHandler.class);
 
@@ -33,17 +32,22 @@ public class ClusterManagerUpgradeHandler implements EventHandler<ClusterUpgrade
     }
 
     @Override
-    public void accept(Event<ClusterUpgradeRequest> event) {
+    protected Selectable defaultFailureEvent(Long resourceId, Exception e) {
+        return new ClusterUpgradeFailedEvent(resourceId, e);
+    }
+
+    @Override
+    protected void doAccept(HandlerEvent event) {
         LOGGER.debug("Accepting Cluster Manager upgrade event..");
-        ClusterUpgradeRequest request = event.getData();
+        ClusterManagerUpgradeRequest request = event.getData();
         Selectable result;
         try {
-            clusterManagerUpgradeService.upgradeCluster(request.getResourceId());
+            clusterManagerUpgradeService.upgradeClusterManager(request.getResourceId());
             result = new ClusterManagerUpgradeSuccess(request.getResourceId());
         } catch (Exception e) {
             LOGGER.info("Cluster Manager upgrade event failed", e);
             result = new ClusterUpgradeFailedEvent(request.getResourceId(), e);
         }
-        eventBus.notify(result.selector(), new Event<>(event.getHeaders(), result));
+        sendEvent(result, event);
     }
 }

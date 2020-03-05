@@ -531,7 +531,7 @@ public class SaltOrchestrator implements HostOrchestrator {
             saltCommandRunner.runSaltCommand(sc, new GrainRemoveRunner(targetHostnames, allNodes, "roles", "manager_upgrade"),
                     exitCriteriaModel, exitCriteria);
         } catch (Exception e) {
-            LOGGER.error("Error occurred during ambari upgrade", e);
+            LOGGER.error("Error occurred during Cloudera Manager upgrade", e);
             throw new CloudbreakOrchestratorFailedException(e);
         }
     }

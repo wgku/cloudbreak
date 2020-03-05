@@ -5,6 +5,7 @@ import static com.sequenceiq.cloudbreak.core.flow2.cluster.datalake.upgrade.Clus
 import com.sequenceiq.cloudbreak.reactor.api.event.StackEvent;
 
 public class ClusterUpgradeFailedEvent extends StackEvent {
+
     private Exception exception;
 
     public ClusterUpgradeFailedEvent(Long stackId, Exception exception) {

@@ -124,30 +124,29 @@ public class UpgradeService {
     }
 
     public FlowIdentifier upgradeCluster(Long workspaceId, String stackName, String imageId)  {
+        Optional<Stack> stackOptional = stackService.findStackByNameAndWorkspaceId(stackName, workspaceId);
+        if (stackOptional.isPresent()) {
+            Stack stack = stackOptional.get();
+            StatedImage targetImage = updateImageComponents(imageId, stack);
+            return flowManager.triggerDatalakeClusterUpgrade(stack.getId(), targetImage);
+        } else {
+            throw notFoundException("Stack", stackName);
+        }
+    }
+
+    private StatedImage updateImageComponents(String imageId, Stack stack) {
+        String stackName = stack.getName();
+        Long stackId = stack.getId();
         try {
-            return transactionService.required(() -> {
-                Optional<Stack> stackOptional = stackService.findStackByNameAndWorkspaceId(stackName, workspaceId);
-                if (stackOptional.isPresent()) {
-                    Stack stack = stackOptional.get();
-                    Long stackId = stack.getId();
-                    try {
-                        Image currentImage = componentConfigProviderService.getImage(stackId);
-                        StatedImage targetStatedImage =
-                                imageCatalogService.getImage(currentImage.getImageCatalogUrl(), currentImage.getImageCatalogName(), imageId);
-                        com.sequenceiq.cloudbreak.cloud.model.catalog.Image targetImage = targetStatedImage.getImage();
+            Image currentImage = componentConfigProviderService.getImage(stackId);
+            StatedImage targetStatedImage =
+                    imageCatalogService.getImage(currentImage.getImageCatalogUrl(), currentImage.getImageCatalogName(), imageId);
+            imageService.updateComponentsByStackId(stack, targetStatedImage);
+            return targetStatedImage;
 
-                        imageService.create(stack, stack.cloudPlatform(), targetStatedImage);
-
-                    } catch (CloudbreakImageNotFoundException| CloudbreakImageCatalogException e) {
-                        LOGGER.warn(String.format("Image was not found for stack %s", stackName));
-                    }
-                    return flowManager.triggerDatalakeClusterUpgrade(stackId);
-                } else {
-                    throw notFoundException("Stack", stackName);
-                }
-            });
-        } catch (TransactionExecutionException e) {
-            throw new TransactionRuntimeExecutionException(e);
+        } catch (CloudbreakImageNotFoundException | CloudbreakImageCatalogException e) {
+            LOGGER.warn(String.format("Image was not found for stack %s", stackName));
+            throw notFoundException("Image", imageId);
         }
     }
 

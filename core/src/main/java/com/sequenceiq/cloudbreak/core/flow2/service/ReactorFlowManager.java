@@ -40,6 +40,7 @@ import com.sequenceiq.cloudbreak.core.flow2.event.ClusterAndStackDownscaleTrigge
 import com.sequenceiq.cloudbreak.core.flow2.event.ClusterCredentialChangeTriggerEvent;
 import com.sequenceiq.cloudbreak.core.flow2.event.ClusterDownscaleDetails;
 import com.sequenceiq.cloudbreak.core.flow2.event.ClusterScaleTriggerEvent;
+import com.sequenceiq.cloudbreak.core.flow2.event.DatalakeClusterUpgradeTriggerEvent;
 import com.sequenceiq.cloudbreak.core.flow2.event.MaintenanceModeValidationTriggerEvent;
 import com.sequenceiq.cloudbreak.core.flow2.event.MultiHostgroupClusterAndStackDownscaleTriggerEvent;
 import com.sequenceiq.cloudbreak.core.flow2.event.StackAndClusterUpscaleTriggerEvent;
@@ -59,6 +60,7 @@ import com.sequenceiq.cloudbreak.reactor.api.event.orchestration.ClusterRepairTr
 import com.sequenceiq.cloudbreak.reactor.api.event.orchestration.EphemeralClusterUpdateTriggerEvent;
 import com.sequenceiq.cloudbreak.reactor.api.event.orchestration.StackRepairTriggerEvent;
 import com.sequenceiq.cloudbreak.reactor.api.event.stack.TerminationEvent;
+import com.sequenceiq.cloudbreak.service.image.StatedImage;
 import com.sequenceiq.cloudbreak.service.stack.StackService;
 import com.sequenceiq.cloudbreak.service.stack.repair.UnhealthyInstances;
 import com.sequenceiq.cloudbreak.workspace.model.User;
@@ -82,7 +84,7 @@ import reactor.rx.Promise;
 public class ReactorFlowManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReactorFlowManager.class);
 
-    private static final long WAIT_FOR_ACCEPT = 10L;
+    private static final long WAIT_FOR_ACCEPT = 30L;
 
     private static final List<String> ALLOWED_FLOW_TRIGGERS_IN_MAINTENANCE = List.of(
             FlowChainTriggers.FULL_SYNC_TRIGGER_EVENT,
@@ -193,9 +195,10 @@ public class ReactorFlowManager {
         reactor.notify(selector, eventFactory.createEventWithErrHandler(createEventParameters(stackId), new StackEvent(selector, stackId)));
     }
 
-    public FlowIdentifier triggerDatalakeClusterUpgrade(Long stackId) {
+    public FlowIdentifier triggerDatalakeClusterUpgrade(Long stackId, StatedImage targetImage) {
         String selector = FlowChainTriggers.DATALAKE_CLUSTER_UPGRADE_CHAIN_TRIGGER_EVENT;
-        return notify(stackId, selector, new StackEvent(selector, stackId));
+        DatalakeClusterUpgradeTriggerEvent event = new DatalakeClusterUpgradeTriggerEvent(selector, stackId, targetImage);
+        return notify(stackId, selector, event);
     }
 
     public FlowIdentifier triggerClusterCredentialReplace(Long stackId, String userName, String password) {

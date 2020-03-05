@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.cloud.model.ClouderaManagerRepo;
-import com.sequenceiq.cloudbreak.cluster.api.ClusterDecomissionService;
 import com.sequenceiq.cloudbreak.cluster.service.ClusterComponentConfigProvider;
 import com.sequenceiq.cloudbreak.common.model.OrchestratorType;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.OrchestratorTypeResolver;
@@ -58,7 +57,7 @@ public class ClusterManagerUpgradeService {
     @Inject
     private StackUtil stackUtil;
 
-    public void upgradeCluster(Long stackId) throws CloudbreakOrchestratorException {
+    public void upgradeClusterManager(Long stackId) throws CloudbreakOrchestratorException {
         Stack stack = stackService.getByIdWithListsInTransaction(stackId);
         Cluster cluster = stack.getCluster();
         try {
@@ -70,7 +69,7 @@ public class ClusterManagerUpgradeService {
                 Set<String> gatewayFQDN = Collections.singleton(gatewayInstance.getDiscoveryFQDN());
                 ExitCriteriaModel exitCriteriaModel = clusterDeletionBasedModel(stack.getId(), cluster.getId());
                 Map<String, SaltPillarProperties> servicePillar = new HashMap<>();
-                ClusterDecomissionService clusterDecomissionService = clusterApiConnectors.getConnector(stack).clusterDecomissionService();
+//                ClusterDecomissionService clusterDecomissionService = clusterApiConnectors.getConnector(stack).clusterDecomissionService();
                 ClouderaManagerRepo clouderaManagerRepo = clusterComponentConfigProvider.getClouderaManagerRepoDetails(cluster.getId());
                 servicePillar.put("cloudera-manager-repo", new SaltPillarProperties("/cloudera-manager/repo.sls",
                         singletonMap("cloudera-manager", singletonMap("repo", clouderaManagerRepo))));
@@ -78,7 +77,7 @@ public class ClusterManagerUpgradeService {
                 SaltConfig pillar = new SaltConfig(servicePillar);
 //                InMemoryStateStore.putStack(stack.getId(), PollGroup.POLLABLE);
                 hostOrchestrator.upgradeClusterManager(gatewayConfig, gatewayFQDN, stackUtil.collectNodes(stack), pillar, exitCriteriaModel);
-                clusterDecomissionService.restartStaleServices();
+//                clusterDecomissionService.restartStaleServices();
             } else {
                 throw new UnsupportedOperationException("Cloudera Manager upgrade supports host orchestrator only!");
             }
