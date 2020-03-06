@@ -4,7 +4,6 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import com.cloudera.api.swagger.client.ApiClient;
@@ -30,9 +29,6 @@ public class ClouderaManagerDeregisterService {
 
     @Inject
     private ClouderaManagerApiFactory clouderaManagerApiFactory;
-
-    @Inject
-    private ApplicationContext applicationContext;
 
     @Inject
     private CmTemplateProcessorFactory cmTemplateProcessorFactory;
