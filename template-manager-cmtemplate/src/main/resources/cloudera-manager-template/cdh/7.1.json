@@ -103,6 +103,10 @@
     {
       "name": "PHOENIX",
       "version": "5.0.0"
+    },
+    {
+      "name": "QUEUEMANAGER",
+      "version": "3.1.1"
     }
   ],
   "version": "7.1.0",
