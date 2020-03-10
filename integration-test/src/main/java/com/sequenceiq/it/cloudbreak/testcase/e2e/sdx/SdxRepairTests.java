@@ -17,7 +17,6 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
@@ -89,14 +88,13 @@ public class SdxRepairTests extends BasicSdxTests {
         initializeDefaultBlueprints(testContext);
     }
 
-    @Ignore("This should be re-enabled once CB-5385 is fixed")
     @Test(dataProvider = TEST_CONTEXT)
     @Description(
             given = "there is a running Cloudbreak, and an SDX cluster in available state",
             when = "recovery called on the IDBROKER and MASTER host group, where the EC2 instance had been terminated",
             then = "SDX recovery should be successful, the cluster should be up and running"
     )
-    public void disabledTestSDXMultiRepairIDBRokerAndMasterWithTerminatedEC2Instances(TestContext testContext) {
+    public void testSDXMultiRepairIDBRokerAndMasterWithTerminatedEC2Instances(TestContext testContext) {
         String sdx = resourcePropertyProvider().getName();
 
         List<String> actualVolumeIds = new ArrayList<>();
@@ -161,6 +159,7 @@ public class SdxRepairTests extends BasicSdxTests {
                     return waitUtil.waitForSdxInstanceStatus(testDto, client, IDBROKER.getName(), InstanceStatus.STOPPED);
                 })
                 .when(sdxTestClient.repair(), key(sdx))
+                .await(SdxClusterStatusResponse.REPAIR_IN_PROGRESS, key(sdx))
                 .awaitForFlow(key(sdx))
                 .await(SdxClusterStatusResponse.RUNNING, key(sdx))
                 .then((tc, testDto, client) -> {
@@ -178,19 +177,13 @@ public class SdxRepairTests extends BasicSdxTests {
                 .validate();
     }
 
-    /**
-     * This test case is disabled right now, because of [CB-4176 [Repair] Data Lake Cluster repair fails for master node when stopped from AWS].
-     *
-     * @param testContext   Stores and shares test objects through test execution between individual test cases.
-     *
-     * The 'disabled' tag on method name and the '@Test(dataProvider = TEST_CONTEXT)' annotation should be restored in case of resume this test case.
-     */
+    @Test(dataProvider = TEST_CONTEXT)
     @Description(
             given = "there is a running Cloudbreak, and an SDX cluster in available state",
             when = "recovery called on the MASTER host group, where the EC2 instance had been stopped",
             then = "SDX recovery should be successful, the cluster should be up and running"
     )
-    public void disbaledTestSDXRepairMasterWithStoppedEC2Instance(TestContext testContext) {
+    public void testSDXRepairMasterWithStoppedEC2Instance(TestContext testContext) {
         String sdx = resourcePropertyProvider().getName();
 
         List<String> actualMasterVolumeIds = new ArrayList<>();
@@ -232,20 +225,13 @@ public class SdxRepairTests extends BasicSdxTests {
                 .validate();
     }
 
-    /**
-     * This test case is disabled right now, because of [CB-3674 Can’t repair master when idbroker is stopped].
-     *
-     * @param testContext Stores and shares test objects through test execution between individual test cases.
-     * @throws IOException Throws in case of recipe file stream cannot be written to or closed.
-     *
-     * The 'disabled' tag on method name and the '@Test(dataProvider = TEST_CONTEXT)' annotation should be restored in case of resume this test case.
-     */
+    @Test(dataProvider = TEST_CONTEXT)
     @Description(
             given = "there is a running Cloudbreak, and an SDX cluster in available state",
             when = "recovery called on the IDBROKER and MASTER host group, where the EC2 instance had been stopped",
             then = "SDX recovery should be successful, the cluster should be up and running"
     )
-    public void disabledTestSDXMultiRepairIDBRokerAndMasterWithRecipeFile(TestContext testContext) throws IOException {
+    public void testSDXMultiRepairIDBRokerAndMasterWithRecipeFile(TestContext testContext) throws IOException {
         String sdxInternal = resourcePropertyProvider().getName();
         String cluster = resourcePropertyProvider().getName();
         String clouderaManager = resourcePropertyProvider().getName();
