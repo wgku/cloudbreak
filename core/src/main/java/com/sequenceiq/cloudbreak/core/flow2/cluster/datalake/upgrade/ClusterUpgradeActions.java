@@ -12,7 +12,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 
+import com.sequenceiq.cloudbreak.cloud.model.catalog.Image;
 import com.sequenceiq.cloudbreak.common.event.Selectable;
+import com.sequenceiq.cloudbreak.core.flow2.event.DatalakeClusterUpgradeTriggerEvent;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
 import com.sequenceiq.cloudbreak.reactor.api.event.StackEvent;
@@ -21,6 +23,7 @@ import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterManage
 import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterUpgradeFailedEvent;
 import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterUpgradeRequest;
 import com.sequenceiq.cloudbreak.reactor.api.event.cluster.upgrade.ClusterUpgradeSuccess;
+import com.sequenceiq.cloudbreak.service.image.StatedImage;
 import com.sequenceiq.cloudbreak.service.stack.StackService;
 import com.sequenceiq.flow.core.Flow;
 import com.sequenceiq.flow.core.FlowEvent;
@@ -30,6 +33,7 @@ import com.sequenceiq.flow.core.FlowState;
 @Configuration
 public class ClusterUpgradeActions {
 
+    public static final String TARGET_IMAGE = "TARGET_IMAGE";
     @Inject
     private StackService stackService;
 
@@ -38,15 +42,17 @@ public class ClusterUpgradeActions {
 
     @Bean(name = "CLUSTER_MANAGER_UPGRADE_STATE")
     public Action<?, ?> upgradeClusterManager() {
-        return new AbstractClusterUpgradeAction<>(StackEvent.class) {
+        return new AbstractClusterUpgradeAction<>(DatalakeClusterUpgradeTriggerEvent.class) {
 
             @Override
-            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext, StackEvent payload) {
+            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext,
+                    DatalakeClusterUpgradeTriggerEvent payload) {
                 return ClusterUpgradeContext.from(flowParameters, payload);
             }
 
             @Override
-            protected void doExecute(ClusterUpgradeContext context, StackEvent payload, Map<Object, Object> variables) {
+            protected void doExecute(ClusterUpgradeContext context, DatalakeClusterUpgradeTriggerEvent payload, Map<Object, Object> variables) {
+                variables.put(TARGET_IMAGE, payload.getTargetImage());
                 clusterUpgradeService.upgradeClusterManager(context.getStackId());
                 sendEvent(context);
             }
@@ -57,7 +63,7 @@ public class ClusterUpgradeActions {
             }
 
             @Override
-            protected Object getFailurePayload(StackEvent payload, Optional<ClusterUpgradeContext> flowContext, Exception ex) {
+            protected Object getFailurePayload(DatalakeClusterUpgradeTriggerEvent payload, Optional<ClusterUpgradeContext> flowContext, Exception ex) {
                 return ClusterUpgradeFailedEvent.from(payload, ex);
             }
         };
@@ -68,13 +74,16 @@ public class ClusterUpgradeActions {
         return new AbstractClusterUpgradeAction<>(ClusterManagerUpgradeSuccess.class) {
 
             @Override
-            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext, ClusterManagerUpgradeSuccess payload) {
+            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext,
+                    ClusterManagerUpgradeSuccess payload) {
                 return ClusterUpgradeContext.from(flowParameters, payload);
             }
 
             @Override
             protected void doExecute(ClusterUpgradeContext context, ClusterManagerUpgradeSuccess payload, Map<Object, Object> variables) {
-                clusterUpgradeService.upgradeCluster(context.getStackId());
+                StatedImage targetImage = (StatedImage) variables.get(TARGET_IMAGE);
+                Image image = targetImage.getImage();
+                clusterUpgradeService.upgradeCluster(context.getStackId(), image);
                 sendEvent(context);
             }
 
@@ -95,13 +104,16 @@ public class ClusterUpgradeActions {
         return new AbstractClusterUpgradeAction<>(ClusterUpgradeSuccess.class) {
 
             @Override
-            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext, ClusterUpgradeSuccess payload) {
+            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext,
+                    ClusterUpgradeSuccess payload) {
                 return ClusterUpgradeContext.from(flowParameters, payload);
             }
 
             @Override
             protected void doExecute(ClusterUpgradeContext context, ClusterUpgradeSuccess payload, Map<Object, Object> variables) {
-                clusterUpgradeService.clusterUpgradeFinished(context.getStackId());
+                StatedImage targetImage = (StatedImage) variables.get(TARGET_IMAGE);
+                Image image = targetImage.getImage();
+                clusterUpgradeService.clusterUpgradeFinished(context.getStackId(), image);
                 sendEvent(context);
             }
 
@@ -122,7 +134,8 @@ public class ClusterUpgradeActions {
         return new AbstractClusterUpgradeAction<>(ClusterUpgradeFailedEvent.class) {
 
             @Override
-            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext, ClusterUpgradeFailedEvent payload) {
+            protected ClusterUpgradeContext createFlowContext(FlowParameters flowParameters, StateContext<FlowState, FlowEvent> stateContext,
+                    ClusterUpgradeFailedEvent payload) {
                 Flow flow = getFlow(flowParameters.getFlowId());
                 Stack stack = stackService.getById(payload.getResourceId());
                 MDCBuilder.buildMdcContext(stack);
