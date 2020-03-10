@@ -421,6 +421,11 @@ cb:
               - http://s3.amazonaws.com/dev.hortonworks.com/CFM/centos7/2.x/BUILDS/2.0.0.0-121/tars/parcel/NIFI-1.10.0.2.0.0.0-121.jar
               - http://s3.amazonaws.com/dev.hortonworks.com/CFM/centos7/2.x/BUILDS/2.0.0.0-121/tars/parcel/NIFICA-1.10.0.2.0.0.0-121.jar
               - http://s3.amazonaws.com/dev.hortonworks.com/CFM/centos7/2.x/BUILDS/2.0.0.0-121/tars/parcel/NIFIREGISTRY-0.5.0.2.0.0.0-121.jar
+          - name: CFM
+            parcel: http://s3.amazonaws.com/dev.hortonworks.com/CFM/centos7/2.x/BUILDS/2.0.0.0-121/tars/parcel
+            version: 3.0.0.0
+            csd:
+              - http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/1855087/spark3/2.x/csd/SPARK3_ON_YARN-3.0.0.2.99.0.0-23.jar
         version: 7.0.2-1.cdh7.0.2.p2.1711788
         minCM: 7.0
         repo:
